@@ -1,19 +1,18 @@
-/***
-  Copyright (c) 2012 sprogcoder <sprogcoder@gmail.com>
-  
-  Licensed under the Apache License, Version 2.0 (the "License"); you may
-  not use this file except in compliance with the License. You may obtain
-  a copy of the License at
-  
-    http://www.apache.org/licenses/LICENSE-2.0
-    
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+/**
+ * Copyright (c) 2012 sprogcoder <sprogcoder@gmail.com>
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package com.sprogcoder.memory;
 
 import java.util.Arrays;
@@ -22,61 +21,53 @@ import java.util.Collections;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 
-public class MemoryUtils
-{
+public class MemoryUtils {
+    private static final int FF = 0xFF;
+    private static final int _16 = 16;
+    private static final int _24 = 24;
+    private static final int _8 = 8;
 
-	/*
-	 * Byte Array Conversion Functions
-	 */
-	public static int[] bytesToUnsignedInts(byte[] bytes)
-	{
-		int[] realvalues = new int[bytes.length];
-		for (int i = 0; i < bytes.length; i++)
-		{
-			realvalues[i] = bytes[i] & 0xFF;
-		}
+    /*
+                 * Byte Array Conversion Functions
+                 */
+    public static int[] bytesToUnsignedInts(byte[] bytes) {
+        int length = bytes.length;
+        int[] realValues = new int[length];
+        for (int i = 0; i < length; i++) {
+            realValues[i] = bytes[i] & FF;
+        }
+        return realValues;
+    }
 
-		return realvalues;
-	}
+    public static String[] bytesToUnsignedHexes(byte[] bytes) {
+        int length = bytes.length;
+        String[] hexValues = new String[length];
+        for (int i = 0; i < length; i++) {
+            hexValues[i] = Integer.toHexString(bytes[i] & FF);
+        }
+        return hexValues;
+    }
 
-	public static String[] bytesToUnsignedHexes(byte[] bytes)
-	{
-		String[] hexValues = new String[bytes.length];
-		for (int i = 0; i < bytes.length; i++)
-		{
-			hexValues[i] = Integer.toHexString(bytes[i] & 0xFF);
-		}
+    public static int bytesToSignedInt(byte[] bytes) {
+        byte[] byteCopy = Arrays.copyOf(bytes, bytes.length);
+        Collections.reverse(Bytes.asList(byteCopy));
+        return Ints.fromByteArray(byteCopy);
+    }
 
-		return hexValues;
-	}
+    /*
+     * Unsigned Functions
+     */
+    public static int unsignedShortToInt(byte[] bytes) {
+        int low = bytes[0] & FF;
+        int high = bytes[1] & FF;
+        return high << 8 | low;
+    }
 
-	public static int bytesToSignedInt(byte[] bytes)
-	{
-		byte[] byteCopy = Arrays.copyOf(bytes, bytes.length);
-		Collections.reverse(Bytes.asList(byteCopy));
-
-		return Ints.fromByteArray(byteCopy);
-	}
-
-	/*
-	 * Unsigned Functions
-	 */
-	public static int unsignedShortToInt(byte[] bytes)
-	{
-		int low = bytes[0] & 0xff;
-		int high = bytes[1] & 0xff;
-
-		return (int) (high << 8 | low);
-	}
-
-	public static long unsignedIntToLong(byte[] bytes)
-	{
-		long b1 = bytes[0] & 0xff;
-		long b2 = bytes[1] & 0xff;
-		long b3 = bytes[2] & 0xff;
-		long b4 = bytes[3] & 0xff;
-
-		return (long) ((b1 << 24) | (b2 << 16) | (b3 << 8) | (b4));
-	}
-
+    public static long unsignedIntToLong(byte[] bytes) {
+        long b1 = bytes[0] & FF;
+        long b2 = bytes[1] & FF;
+        long b3 = bytes[2] & FF;
+        long b4 = bytes[3] & FF;
+        return b1 << _24 | b2 << _16 | b3 << _8 | b4;
+    }
 }
