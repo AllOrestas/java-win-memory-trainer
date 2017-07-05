@@ -29,10 +29,18 @@ public class JTrainer {
         this.pid = pid;
     }
 
-    public JTrainer(String windowClass, String windowText) throws WindowNotFoundException {
-        this.windowClass = windowClass;
-        this.windowText = windowText;
+    public JTrainer(String partialWindowText) throws WindowNotFoundException {
+        HWND hWnd = JUser32.findWindowByTitle(partialWindowText);
+        if (hWnd == null) {
+            throw new WindowNotFoundException(null, partialWindowText);
+        }
+        this.windowClass = null;
+        this.windowText = JUser32.getWindowText(hWnd);
         this.pid = getProcessIdFromWindow();
+    }
+
+    private int getProcessIdFromWindow() throws WindowNotFoundException {
+        return getWindowTheadProcessId(findWindow(windowClass, windowText));
     }
 
     /*
@@ -46,12 +54,33 @@ public class JTrainer {
         return hWnd;
     }
 
-    private int getProcessIdFromWindow() throws WindowNotFoundException {
-        return getWindowTheadProcessId(findWindow(windowClass, windowText));
-    }
-
     private int getWindowTheadProcessId(HWND hWnd) {
         return JUser32.getWindowThreadProcessId(hWnd);
+    }
+
+    public JTrainer(String windowClass, String windowText) throws WindowNotFoundException {
+        this.windowClass = windowClass;
+        this.windowText = windowText;
+        this.pid = getProcessIdFromWindow();
+    }
+
+    public boolean hookKeyboard(final JKernel32.KeyboardHookInfo keyboardHookInfo) {
+        return JKernel32.hookKeyboard(keyboardHookInfo);
+    }
+
+    public boolean isProcessAvailable() {
+        WinNT.HANDLE hProcess = JKernel32.openProcess(pid);
+        return hProcess != null;
+    }
+
+    public byte[] readProcessMemory(int lpBaseAddress, int nSize) throws MemoryException {
+        WinNT.HANDLE hProcess = openProcess();
+        byte[] result = JKernel32.readProcessMemory(hProcess, lpBaseAddress, nSize);
+        if (result == null) {
+            throw new MemoryException("ReadProcessMemory", getLastError());
+        }
+        JKernel32.closeHandle(hProcess);
+        return result;
     }
 
     private WinNT.HANDLE openProcess() throws MemoryException {
@@ -69,11 +98,6 @@ public class JTrainer {
         return JKernel32.getLastError();
     }
 
-    public boolean isProcessAvailable() {
-        WinNT.HANDLE hProcess = JKernel32.openProcess(pid);
-        return hProcess != null;
-    }
-
     public void setWindow(String windowClass, String windowText) throws WindowNotFoundException {
         this.windowClass = windowClass;
         this.windowText = windowText;
@@ -84,14 +108,8 @@ public class JTrainer {
         this.pid = getProcessIdFromWindow();
     }
 
-    public byte[] readProcessMemory(int lpBaseAddress, int nSize) throws MemoryException {
-        WinNT.HANDLE hProcess = openProcess();
-        byte[] result = JKernel32.readProcessMemory(hProcess, lpBaseAddress, nSize);
-        if (result == null) {
-            throw new MemoryException("ReadProcessMemory", getLastError());
-        }
-        JKernel32.closeHandle(hProcess);
-        return result;
+    public boolean unHookKeyboard(JKernel32.KeyboardHookInfo info) {
+        return JKernel32.unHookKeyboard(info);
     }
 
     public void writeProcessMemory(int lpBaseAddress, int lpBuffer[]) throws MemoryException {

@@ -16,17 +16,48 @@
 package com.sprogcoder.memory;
 
 import com.sun.jna.Native;
+import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.win32.StdCallLibrary;
 
 public class JUser32 {
-
     public static HWND findWindow(String lpClassName, String lpWindowName) {
         String className = lpClassName == null || lpClassName.isEmpty() ? null : lpClassName;
         String windowName = lpWindowName == null || lpWindowName.isEmpty() ? null : lpWindowName;
         return User32.INSTANCE.FindWindow(className, windowName);
+    }
+
+    public static HWND findWindowByTitle(final String partialTitle) {
+        final HWND[] found = new HWND[1];
+        User32.INSTANCE.EnumWindows(new WinUser.WNDENUMPROC() {
+            @Override
+            public boolean callback(HWND hWnd, Pointer arg1) {
+                String wText = getWindowText(hWnd);
+                System.out.println("Found window with text " + hWnd + ", Text: " + wText);
+                boolean contains = wText.contains(partialTitle);
+                if (contains) {
+                    found[0] = hWnd;
+                }
+                return !contains;
+            }
+        }, null);
+        return found[0];
+    }
+
+    public static String getWindowText(HWND hWnd) {
+        int len = User32.INSTANCE.GetWindowTextLength(hWnd) * 4;
+        char[] windowText = new char[len];
+        User32.INSTANCE.GetWindowText(hWnd, windowText, len);
+        String wText = Native.toString(windowText);
+        return wText;
+    }
+
+    public static WinUser.WINDOWINFO getWindowInfo(HWND hWnd) {
+        WinUser.WINDOWINFO pwi = new WinUser.WINDOWINFO();
+        User32.INSTANCE.GetWindowInfo(hWnd, pwi);
+        return pwi;
     }
 
     public static int getWindowThreadProcessId(HWND hWnd) {

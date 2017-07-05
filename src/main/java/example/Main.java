@@ -14,7 +14,7 @@ public class Main
 
 	public static void main(String[] args) throws WindowNotFoundException, MemoryException
 	{
-        JTrainer jTrainer = new JTrainer(null, "Minesweeper");
+		JTrainer jTrainer = new JTrainer("Сапер");
 
 		// Old Bytes
 		jTrainer.writeProcessMemory(MEMORY_ADDRESS, new int[] { 0x22, 0x22, 0x22, 0x22 });
